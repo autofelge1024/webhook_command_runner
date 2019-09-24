@@ -10,7 +10,7 @@ with open("README.md", "r") as fh:
 
 setup(
 	name="webhook_command_runner",
-	version="1.0.1",
+	version="1.0.4",
 	url="https://github.com/autofelge1024/webhook_command_runner",
 	license="MIT",
 	author="autofelge1024",

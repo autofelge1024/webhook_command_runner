@@ -12,17 +12,6 @@ import logging
 import subprocess
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("file", type=argparse.FileType('r'))
-parser.add_argument("-l", "--listen-ip", type=str, default="127.0.0.1", help="IP-Adress to listen on")
-parser.add_argument("-p", "--port", type=int, default=8080, help="Portnumber to listen on")
-args = parser.parse_args()
-
-config = configparser.ConfigParser()
-config.read_file(args.file)
-logger = logging.getLogger(__name__)
-
-
 class Webserver(SimpleHTTPRequestHandler):
 	"""
 	This class receives the HTTP-Requests send to the webhook server.
@@ -35,9 +24,10 @@ class Webserver(SimpleHTTPRequestHandler):
 		Handle a GET-Request send to the webserver.
 		:return: None
 		"""
+		logger = logging.getLogger(__name__)
 		logger.debug("Got HTTP-GET: %s" %self.path)
 		try:
-			if self.path in Webserver.config.sections() and "GET" in config[self.path].get("method", ""):
+			if self.path in Webserver.config.sections() and "GET" in self.config[self.path].get("method", ""):
 				settings = Webserver.config[self.path]
 				logger.info("Calling: %s" %settings["command"])
 				subprocess.Popen(settings["command"], shell=True, cwd=settings.get("path", "./"))
@@ -61,9 +51,10 @@ class Webserver(SimpleHTTPRequestHandler):
 		Handle a POST-Request send to the webserver.
 		:return: None
 		"""
+		logger = logging.getLogger(__name__)
 		logger.debug("Got HTTP-POST: %s" %self.path)
 		try:
-			if self.path in Webserver.config.sections() and "POST" in config[self.path].get("method", ""):
+			if self.path in Webserver.config.sections() and "POST" in self.config[self.path].get("method", ""):
 				settings = Webserver.config[self.path]
 				logger.info("Calling: %s" %settings["command"])
 				subprocess.Popen(settings["command"], shell=True, cwd=settings.get("path", "./"))
@@ -92,6 +83,7 @@ def run(config, listen_ip="127.0.0.1", listen_port=8080):
 	:param listen_port: Port number to listen on
 	:return: None
 	"""
+	logger = logging.getLogger(__name__)
 	logger.debug("Starting the webserver, listening on %s:%i" %(listen_ip, listen_port))
 	server_address = (listen_ip, listen_port)
 	httpd = HTTPServer(server_address, Webserver)
@@ -100,6 +92,16 @@ def run(config, listen_ip="127.0.0.1", listen_port=8080):
 
 
 def main():
+	parser = argparse.ArgumentParser()
+	parser.add_argument("file", type=argparse.FileType('r'))
+	parser.add_argument("-l", "--listen-ip", type=str, default="", help="IP-Adress to listen on")
+	parser.add_argument("-p", "--port", type=int, default=0, help="Portnumber to listen on")
+	args = parser.parse_args()
+
+	config = configparser.ConfigParser()
+	config.read_file(args.file)
+	logger = logging.getLogger(__name__)
+
 	FORMAT = '%(asctime)-15s %(name)s %(levelname)s - %(message)s'
 	logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 
