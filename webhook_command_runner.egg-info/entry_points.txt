@@ -1,3 +1,0 @@
-[console_scripts]
-webhook-command-runner = webhook_command_runner.webserver:main
-
